@@ -10,7 +10,7 @@ import softmax
 sys.path.append("/home/sabi/workspace/reference_code/deep-learning-from-scratch/")
 sys.path.append(os.getcwd())
 from dataset.mnist import load_mnist
-
+import matplotlib.pyplot as plt
 if __name__=="__main__":
     (x_train, t_train),(x_test, t_test)=load_mnist(normalize=True, one_hot_label=True)
     y={}
@@ -38,14 +38,25 @@ if __name__=="__main__":
         y['y6']=softmax_L6.forward(y['y5'],t_train[idx_list,:])
         
 
-
+    #back propagation
         dy['softmaxWithLoss']=softmax_L6.backward(t_train[idx_list,:])
         dy['affine_L5']=affine_L5.backward(dy['softmaxWithLoss'])
         dy['sigmoid_L4']=sigmoid_L4.backward(dy['affine_L5'])
         dy['affine_L3']=affine_L3.backward(dy['sigmoid_L4'])
         dy['sigmoid_L2']=sigmoid_L2.backward(dy['affine_L3'])
         dy['affine_L1']=affine_L1.backward(dy['sigmoid_L2'])
-        
+    #update parameter
+        affine_L5.update()
+        affine_L3.update()
+        affine_L1.update()
+
+        y['y1']=affine_L1.forward(x_train[idx_list,:])
+        y['y2']=sigmoid_L2.forward(y['y1'])
+        y['y3']=affine_L3.forward(y['y2'])
+        y['y4']=sigmoid_L4.forward(y['y3'])
+        y['y5']=affine_L5.forward(y['y4'])
+        y['y6']=softmax_L6.forward(y['y5'],t_train[idx_list,:])
+
         if i % per_epoch == 0:
             #accumulate loss
             loss.append(np.sum(softmax.error)/bat_size)
@@ -54,5 +65,12 @@ if __name__=="__main__":
             if t_train.ndim != 1: t=t_train.argmax()
             else: t=t_train.copy()
             acculacy.append(t[np.where(predict_t==t)].shape[0]/bat_size)
-            
-        pdb.set_trace()
+    
+    x=np.arange(0,len(acculacy))
+    plt.figure(1)
+    plt.plot(x,acculacy)
+    plt.title('accuracy')
+    plt.figure(2)
+    plt.plot(x,loss)
+    plt.title('loss')
+    plt.show()
