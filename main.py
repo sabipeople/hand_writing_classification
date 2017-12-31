@@ -56,7 +56,7 @@ if __name__=="__main__":
         y['y5']=affine_L5.forward(y['y4'])
         y['y6']=softmax_L6.forward(y['y5'],t_train[idx_list,:])
 
-        if i % 100 == 0:
+        if i % per_epoch == 0:
 #            print("predict_t", softmax_L6.y[0,:])
 #            print("t", t_train[idx_list[0],:])
             #accumulate loss
@@ -80,3 +80,18 @@ if __name__=="__main__":
     plt.plot(x,loss)
     plt.title('loss')
     plt.show()
+    pdb.set_trace()
+    dout=affine_L1.forward(x_test)
+    dout=sigmoid_L2.forward(dout)
+    dout=affine_L3.forward(dout)
+    dout=sigmoid_L4.forward(dout)
+    dout=affine_L5.forward(dout)
+    dout=softmax_L6.forward(dout, t_test)
+
+    predict_t=softmax_L6.y.argmax(axis=1)
+    if t_test.ndim !=1: t=t_test.argmax(1)
+    else: t=t_test.copy()
+
+    print("accuracy: %f" %(t[np.where(predict_t==t)].shape[0]/t.shape[0]))
+    
+
