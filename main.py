@@ -4,7 +4,7 @@ import sys
 import os
 import pdb
 import affine
-import sigmoid
+import sigmoid_array
 import softmax
 
 sys.path.append("/home/sabi/workspace/reference_code/deep-learning-from-scratch/")
@@ -17,16 +17,15 @@ if __name__=="__main__":
     dy={}
     bat_size=100
     affine_L1=affine.affine(rows=x_train.shape[1],cols=50,batch_size=bat_size)
-    sigmoid_L2=sigmoid.sigmoid()
+    sigmoid_L2=sigmoid_array.sigmoid()
     affine_L3=affine.affine(50,100,batch_size=bat_size)
-    sigmoid_L4=sigmoid.sigmoid()
+    sigmoid_L4=sigmoid_array.sigmoid()
     affine_L5=affine.affine(100,10,batch_size=bat_size)
     softmax_L6=softmax.softmax()
     loss=[]
     acculacy=[]
-    per_epoch=max(x_train.shape[0]/bat_size,1)
-    
-    for i in range(x_train.shape[0]/bat_size):
+    per_epoch=int(max(x_train.shape[0]/bat_size,1))
+    for i in range(10000):
         idx_list=np.random.choice(x_train.shape[0],bat_size)
     
     #predict process
@@ -57,15 +56,22 @@ if __name__=="__main__":
         y['y5']=affine_L5.forward(y['y4'])
         y['y6']=softmax_L6.forward(y['y5'],t_train[idx_list,:])
 
-        if i % per_epoch == 0:
+        if i % 100 == 0:
+#            print("predict_t", softmax_L6.y[0,:])
+#            print("t", t_train[idx_list[0],:])
             #accumulate loss
-            loss.append(np.sum(softmax.error)/bat_size)
+            loss.append(np.sum(softmax_L6.error))
+            #if len(loss)>=2 and loss[-1]<=loss[-2]:
+            #    affine_L5.update_learningrate(0.1)
+            #    affine_L3.update_learningrate(0.1)
+            #    affine_L1.update_learningrate(0.1)
             #compute acculacy
-            predict_t=y['y6'].argmax()
-            if t_train.ndim != 1: t=t_train.argmax()
-            else: t=t_train.copy()
+            predict_t=y['y6'].argmax(axis=1)
+            if t_train.ndim != 1: t=t_train[idx_list,:].argmax(axis=1)
+            else: t=t_train[idx_list,:].copy()
+#            pdb.set_trace()
             acculacy.append(t[np.where(predict_t==t)].shape[0]/bat_size)
-    
+            print("loss: %f, accuracy: %f"%(loss[-1],acculacy[-1])) 
     x=np.arange(0,len(acculacy))
     plt.figure(1)
     plt.plot(x,acculacy)
